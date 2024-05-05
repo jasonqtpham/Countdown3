@@ -1,13 +1,10 @@
 import React, {useState, useEffect}  from "react";
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import Input from '@mui/material/Input';
-import Button from '@mui/material/Button';
+import { Container, Box, TextField, Typography, Input, Button, Card, CardContent, paperClasses, Paper} from '@mui/material';
 
 const Weather = () => {
   const [location, setLocation] = useState("");
   const [weatherData, setWeatherData] = useState(null);
-  const [coordinate, setCoordinate] = useState({latitude: 0, ongitude: 0});
+  const [coordinate, setCoordinate] = useState(null);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -32,7 +29,11 @@ const Weather = () => {
   },[coordinate]);
 
   return (
-    <LocationInput location={location} setLocation={setLocation} handleSubmit={handleSubmit}/>
+    <Container>
+      <Typography variant="h3">Weather App</Typography>
+      <LocationInput location={location} setLocation={setLocation} handleSubmit={handleSubmit}/>
+      <CurrentWeather weatherData={weatherData}/>
+    </Container>
   );
 };
 
@@ -50,6 +51,37 @@ const LocationInput = ({ location, setLocation, handleSubmit}) => {
         </Button>
       </form>
     );
+};
+const CurrentWeather = ({ weatherData }) => {
+  return (
+    weatherData && (
+      <Box display="flex" justifyContent="left">
+        <Card>
+          <CardContent
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Typography variant="h4">{weatherData.name}</Typography>
+            <br />
+            <Box display="flex" alignItems="center">
+              <img
+                src={`http://openweathermap.org/img/wn/${weatherData.weather[0].icon}@4x.png`}
+                alt="Weather Icon"
+                style={{ marginRight: '8px' }}
+              />
+            </Box>
+            <Typography variant="h5">{weatherData.weather[0].description}</Typography>
+            <Typography variant="h5">Temperature: {weatherData.main.temp} °C</Typography>
+            <Typography variant="h5">Humidity: {weatherData.main.humidity}%</Typography>
+            <Typography variant="h5">Wind Speed: {weatherData.wind.speed} m/s</Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    )
+  );
 };
 
 const fetchGeoData = async (location) => {
