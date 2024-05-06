@@ -19,15 +19,22 @@ const Weather = () => {
   const [coordinate, setCoordinate] = useState(null);
   const [hourlyData, setHourlyData] = useState(null);
   const [weeklyData, setWeeklyData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log("Submitted:", location);
-    const geoData = await fetchGeoData(location);
-    console.log("name geo data", geoData.name);
-    setCoordinate({ latitude: geoData.lat, longitude: geoData.lon });
-
-    setLocation("");
+    
+    try {
+      const geoData = await fetchGeoData(location);
+      console.log("name geo data", geoData.name);
+      setCoordinate({ latitude: geoData.lat, longitude: geoData.lon });
+      setLocation("");
+      setErrorMessage("");
+    } catch (error) {
+      console.error('Error fetching geo data:', error);
+      setErrorMessage('Invalid location'); // Set the error message
+    }
   };
 
   useEffect(() => {
@@ -76,16 +83,24 @@ const Weather = () => {
   }, [coordinate]);
 
   return (
-      <Box px={2} py={4}>
-        <Typography variant="h3">Weather App</Typography>
+      <Box px={5} py={2}>
+        <Box px={5} py={5}>
+          <Typography variant="h3">Weather App</Typography><br/>
         <LocationInput
           location={location}
           setLocation={setLocation}
           handleSubmit={handleSubmit}
         />
+        {errorMessage && (
+          <Typography variant="body1" color="error">
+            {errorMessage}
+          </Typography>
+        )}
+        </Box>
+        
         {forecast && (
           <Box display="flex" justifyContent="center">
-            <Box mr={2}>
+            <Box mr={6}>
               <Card>
                 <Box maxWidth={400} bgcolor="#c5cbe6">
                   <CurrentWeather forecast={forecast} />
@@ -104,16 +119,7 @@ const Weather = () => {
                 </Box>
               </Card>
             </Box>
-            <Box>
-              <Grid container spacing={2}>
-                {weeklyData &&
-                  weeklyData.list.map((forecast, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-                      <WeeklyForecastCard forecast={forecast} />
-                    </Grid>
-                  ))}
-              </Grid>
-            </Box>
+            <WeeklyForecastBox weeklyData={weeklyData}></WeeklyForecastBox>
           </Box>
         )}
       </Box>
@@ -199,39 +205,66 @@ const HourlyForecast = ({ forecast }) => {
   );
 };
 
+const WeeklyForecastBox = ({ weeklyData }) => {
+  return (
+    <Box
+      display="flex"
+      overflow="auto"
+      style={{
+        maxWidth: '100%',
+        flexWrap: 'nowrap',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        padding: '8px 0', // Add some padding for better visibility
+      }}
+      bgcolor="#9ca9e6"
+      maxHeight={400}
+    >
+      {weeklyData &&
+        weeklyData.list.map((forecast, index) => (
+          <WeeklyForecastCard key={index} forecast={forecast} />
+        ))}
+    </Box>
+  );
+};
+
 const WeeklyForecastCard = ({ forecast }) => {
   const iconUrl = `http://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`;
-  const date = new Date(forecast.dt * 1000).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const date = new Date(forecast.dt * 1000);
+  const weekday = date.toLocaleString('default', { weekday: 'long' });
+  const formattedDate = date.toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
-    <Card>
-      <CardContent
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      m={1}
+      style={{ width: '150px', backgroundColor: 'white', borderRadius: '8px' }}
     >
+      <Typography variant="h5" gutterBottom>
+        {weekday}
+      </Typography>
       <Typography variant="h6" gutterBottom>
-        {date}
+        {formattedDate}
       </Typography>
-      <Typography variant="h5">{forecast.weather[0].main}</Typography>
-      <br />
-      <Box display="flex" alignItems="center">
-        <img
-          src={`http://openweathermap.org/img/wn/${forecast.weather[0].icon}@4x.png`}
-          alt="Weather Icon"
-          style={{ marginRight: "8px" }}
-        />
+      <Box mb={1}>
+        <img src={iconUrl} alt="Weather Icon" style={{ width: '70px' }} />
       </Box>
-      <Typography variant="h5">
-        H: {Math.floor(forecast.temp.max)} L: {Math.floor(forecast.temp.min)}
+      <Typography variant="h6" gutterBottom>
+        {forecast.weather[0].description}
       </Typography>
-      <Typography variant="h5">
-        Humidity: {forecast.humidity}%
+      <Typography variant="h7" gutterBottom>
+        High: {Math.round(forecast.temp.max)}°F
       </Typography>
-    </CardContent>
-    </Card>
+      <Typography variant="h7" gutterBottom>
+        Low: {Math.round(forecast.temp.min)}°F
+      </Typography>
+    </Box>
   );
 };
 const fetchGeoData = async (location) => {
@@ -241,6 +274,9 @@ const fetchGeoData = async (location) => {
     }`
   );
   const json = await response.json();
+  if (!json[0]) {
+    throw new Error('Invalid location');
+  }
   console.log("This is in fetchGeoData", json[0]);
   return json[0];
 };
