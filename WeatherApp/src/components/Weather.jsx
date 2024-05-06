@@ -33,7 +33,7 @@ const Weather = () => {
       setErrorMessage("");
     } catch (error) {
       console.error('Error fetching geo data:', error);
-      setErrorMessage('Invalid location'); // Set the error message
+      setErrorMessage('Invalid location');
     }
   };
 
@@ -99,17 +99,16 @@ const Weather = () => {
         </Box>
         
         {forecast && (
-          <Box display="flex" justifyContent="center">
+          <Box display="flex" justifyContent="center" >
             <Box mr={6}>
               <Card>
-                <Box maxWidth={400} bgcolor="#c5cbe6">
+                <Box maxWidth={400} sx={{background: 'linear-gradient(0deg, rgba(171,136,251,1) 0%, rgba(128,235,245,1) 100%)'}}>
                   <CurrentWeather forecast={forecast} />
                   <Box
                     display="flex"
                     overflow="auto"
                     style={{ maxHeight: '130px' }}
                     p={2}
-                    bgcolor="#9ca9e6"
                   >
                     {hourlyData &&
                       hourlyData.list.map((forecast, index) => (
@@ -135,8 +134,9 @@ const LocationInput = ({ location, setLocation, handleSubmit }) => {
         variant="standard"
         value={location}
         onChange={(event) => setLocation(event.target.value)}
+        sx={{width: '30%'}}
       />
-      <Button type="submit" variant="contained" color="primary">
+      <Button type="submit" variant="contained" >
         Submit
       </Button>
     </form>
@@ -215,9 +215,9 @@ const WeeklyForecastBox = ({ weeklyData }) => {
         flexWrap: 'nowrap',
         overflowX: 'auto',
         overflowY: 'hidden',
-        padding: '8px 0', // Add some padding for better visibility
+        padding: '8px 0',
       }}
-      bgcolor="#9ca9e6"
+     
       maxHeight={400}
     >
       {weeklyData &&
@@ -244,7 +244,11 @@ const WeeklyForecastCard = ({ forecast }) => {
       alignItems="center"
       justifyContent="center"
       m={1}
-      style={{ width: '150px', backgroundColor: 'white', borderRadius: '8px' }}
+      sx={{
+        width: '150px',
+        borderRadius: '8px',
+        background: 'linear-gradient(0deg, rgba(171,136,251,1) 0%, rgba(128,235,245,1) 100%)',
+      }}
     >
       <Typography variant="h5" gutterBottom>
         {weekday}
